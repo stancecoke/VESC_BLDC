@@ -1,0 +1,6 @@
+1. git clone project to your local drive
+2. run "make arm_sdk_install" (I had to edit the tools.mk file with Windows, due to errors, see commit 9b165de)
+3. open CubeIDE with an empty Workspace
+4. file-->new-->Makefile project with existing code
+5. project properties-->C/C++ Build-->Environment: set path to GCC to "project folder"\tools\gcc-arm-none-eabi-7-2018-q2-update\bin
+6. project properties-->C/C++ Build Tab behaviour: Use custom build arguments: set your hardware version here e.g. 75_100
