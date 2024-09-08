@@ -18,6 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define HW_HAS_PAS_TORQUE_SENSOR
+
 #pragma GCC push_options
 #pragma GCC optimize ("Os")
 
@@ -241,7 +243,8 @@ static THD_FUNCTION(pas_thread, arg) {
 #ifdef HW_HAS_PAS_TORQUE_SENSOR
 			case PAS_CTRL_TYPE_TORQUE:
 			{
-				torque_ratio = hw_get_PAS_torque();
+
+				torque_ratio = app_adc_get_decoded_level2()*pedal_rpm;
 				output = torque_ratio * config.current_scaling * sub_scaling;
 				utils_truncate_number(&output, 0.0, config.current_scaling * sub_scaling);
 			}
