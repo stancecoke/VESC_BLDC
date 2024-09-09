@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define HW_HAS_PAS_TORQUE_SENSOR
+//#define HW_HAS_PAS_TORQUE_SENSOR
 
 #pragma GCC push_options
 #pragma GCC optimize ("Os")
@@ -60,6 +60,9 @@ static volatile bool primary_output = false;
 static volatile bool stop_now = true;
 static volatile bool is_running = false;
 static volatile float torque_ratio = 0.0;
+static volatile float riders_effort = 0.0;
+static float torque_cumulated=0;
+float timestamp = 0;
 
 /**
  * Configure and initialize PAS application
@@ -135,47 +138,76 @@ void pas_event_handler(void) {
 	static float inactivity_time = 0;
 	static float period_filtered = 0;
 	static int32_t correct_direction_counter = 0;
+	uint8_t PAS1_level = 0;
+	uint8_t PAS2_level = 0;
 
-	uint8_t PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
-	uint8_t PAS2_level = palReadPad(HW_PAS2_PORT, HW_PAS2_PIN);
 
-	new_state = PAS2_level * 2 + PAS1_level;
-	direction_qem = (float) QEM[old_state * 4 + new_state];
-	old_state = new_state;
+	switch (config.sensor_type) {
+	case PAS_SENSOR_TYPE_QUADRATURE:
 
-	// Require several quadrature events in the right direction to prevent vibrations from
-	// engging PAS
-	int8_t direction = (direction_conf * direction_qem);
-	
-	switch(direction) {
-		case 1: correct_direction_counter++; break;
-		case -1:correct_direction_counter = 0; break;
-	}
+		PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
+		PAS2_level = palReadPad(HW_PAS2_PORT, HW_PAS2_PIN);
 
-	const float timestamp = (float)chVTGetSystemTimeX() / (float)CH_CFG_ST_FREQUENCY;
+		new_state = PAS2_level * 2 + PAS1_level;
+		direction_qem = (float) QEM[old_state * 4 + new_state];
+		old_state = new_state;
 
-	// sensors are poorly placed, so use only one rising edge as reference
-	if( (new_state == 3) && (correct_direction_counter >= 4) ) {
-		float period = (timestamp - old_timestamp) * (float)config.magnets;
-		old_timestamp = timestamp;
+		// Require several quadrature events in the right direction to prevent vibrations from
+		// engging PAS
+		int8_t direction = (direction_conf * direction_qem);
 
-		UTILS_LP_FAST(period_filtered, period, 1.0);
-
-		if(period_filtered < min_pedal_period) { //can't be that short, abort
-			return;
+		switch (direction) {
+		case 1:
+			correct_direction_counter++;
+			break;
+		case -1:
+			correct_direction_counter = 0;
+			break;
 		}
-		pedal_rpm = 60.0 / period_filtered;
-		pedal_rpm *= (direction_conf * (float)direction_qem);
-		inactivity_time = 0.0;
-		correct_direction_counter = 0;
-	}
-	else {
-		inactivity_time += 1.0 / (float)config.update_rate_hz;
 
-		//if no pedal activity, set RPM as zero
-		if(inactivity_time > max_pulse_period) {
-			pedal_rpm = 0.0;
+		timestamp = (float) chVTGetSystemTimeX() / (float) CH_CFG_ST_FREQUENCY;
+
+		// sensors are poorly placed, so use only one rising edge as reference
+		if ((new_state == 3) && (correct_direction_counter >= 4)) {
+			float period = (timestamp - old_timestamp) * (float) config.magnets;
+			old_timestamp = timestamp;
+
+			UTILS_LP_FAST(period_filtered, period, 1.0);
+
+			if (period_filtered < min_pedal_period) { //can't be that short, abort
+				return;
+			}
+			pedal_rpm = 60.0 / period_filtered;
+			pedal_rpm *= (direction_conf * (float) direction_qem);
+			inactivity_time = 0.0;
+			correct_direction_counter = 0;
+		} else {
+			inactivity_time += 1.0 / (float) config.update_rate_hz;
+
+			//if no pedal activity, set RPM as zero
+			if (inactivity_time > max_pulse_period) {
+				pedal_rpm = 0.0;
+			}
+			break;
+
+			case PAS_SENSOR_TYPE_T17_TORQUESENSOR:
+				timestamp = (float) chVTGetSystemTimeX() / (float) CH_CFG_ST_FREQUENCY;
+				PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
+				if(PAS1_level!=old_state&&(timestamp-old_timestamp)>5){ //search for PAS event with debounce)
+					float period = (timestamp - old_timestamp) * (float) config.magnets;
+					old_timestamp = timestamp;
+					pedal_rpm = 60.0 / period;
+					// avarage over half crank revolution
+					torque_cumulated-=torque_cumulated/(float) config.magnets;
+					torque_cumulated+=app_adc_get_decoded_level2();
+					old_state=PAS1_level;
+				}
+				else if((timestamp-old_timestamp)>0.5)pedal_rpm = 0; //PAS timeout after half a second
+			break;
+			default:
+			break;
 		}
+
 	}
 #endif
 }
@@ -243,8 +275,7 @@ static THD_FUNCTION(pas_thread, arg) {
 #ifdef HW_HAS_PAS_TORQUE_SENSOR
 			case PAS_CTRL_TYPE_TORQUE:
 			{
-
-				torque_ratio = app_adc_get_decoded_level2()*pedal_rpm;
+				torque_ratio = hw_get_PAS_torque();
 				output = torque_ratio * config.current_scaling * sub_scaling;
 				utils_truncate_number(&output, 0.0, config.current_scaling * sub_scaling);
 			}
@@ -275,6 +306,14 @@ static THD_FUNCTION(pas_thread, arg) {
 				}
 			}
 #endif
+			case PAS_CTRL_TYPE_PROP_TO_RIDERS_EFFORT: {
+
+
+				riders_effort = torque_cumulated/(float) config.magnets * pedal_rpm;
+				output = riders_effort * config.current_scaling * sub_scaling;
+				utils_truncate_number(&output, 0.0,config.current_scaling * sub_scaling);
+			}
+
 			default:
 				break;
 		}
