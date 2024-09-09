@@ -63,6 +63,7 @@ static volatile float torque_ratio = 0.0;
 static volatile float riders_effort = 0.0;
 static float torque_cumulated=0;
 float timestamp = 0;
+float period = 0;
 
 /**
  * Configure and initialize PAS application
@@ -169,7 +170,7 @@ void pas_event_handler(void) {
 
 		// sensors are poorly placed, so use only one rising edge as reference
 		if ((new_state == 3) && (correct_direction_counter >= 4)) {
-			float period = (timestamp - old_timestamp) * (float) config.magnets;
+			period = (timestamp - old_timestamp) * (float) config.magnets;
 			old_timestamp = timestamp;
 
 			UTILS_LP_FAST(period_filtered, period, 1.0);
@@ -193,8 +194,8 @@ void pas_event_handler(void) {
 			case PAS_SENSOR_TYPE_T17_TORQUESENSOR:
 				timestamp = (float) chVTGetSystemTimeX() / (float) CH_CFG_ST_FREQUENCY;
 				PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
-				if(PAS1_level!=old_state&&(timestamp-old_timestamp)>5){ //search for PAS event with debounce)
-					float period = (timestamp - old_timestamp) * (float) config.magnets;
+				if(PAS1_level!=old_state&&(timestamp-old_timestamp)>0.02){ //search for PAS event with 20ms debounce, detects both edges
+					period = (timestamp - old_timestamp) * (float) config.magnets;
 					old_timestamp = timestamp;
 					pedal_rpm = 60.0 / period;
 					// avarage over half crank revolution
