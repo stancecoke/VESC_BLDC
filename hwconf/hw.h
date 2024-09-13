@@ -21,6 +21,7 @@
 #define HW_H_
 
 #include "stm32f4xx_conf.h"
+
 #include HW_HEADER
 
 #ifdef HW_HAS_DRV8301
@@ -646,11 +647,18 @@
 #endif
 #endif
 
+#ifndef HW_HAS_LUNA_SERIAL_DISPLAY
 #ifndef HW_PAS1_PORT
 #define HW_PAS1_PORT			HW_UART_RX_PORT
 #define HW_PAS1_PIN				HW_UART_RX_PIN
 #define HW_PAS2_PORT			HW_UART_TX_PORT
 #define HW_PAS2_PIN				HW_UART_TX_PIN
+#endif
+#else
+#define HW_PAS1_PORT			HW_ICU_GPIO  //Use PPM pin for PAS signal
+#define HW_PAS1_PIN				HW_ICU_PIN
+#define HW_PAS2_PORT			HW_ICU_GPIO  //workaround, PAS2 is not needed for T17 torque sensor
+#define HW_PAS2_PIN				HW_ICU_PIN
 #endif
 
 #ifndef HW_ICU_TIMER

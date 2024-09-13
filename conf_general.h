@@ -30,7 +30,7 @@
 
 // Disable hardware limits on configuration parameters
 //#define DISABLE_HW_LIMITS
-
+#define HW_HAS_LUNA_SERIAL_DISPLAY
 #if !defined(HW_SOURCE) && !defined(HW_SOURCE_ALT)
 #error "No hardware source file set"
 #endif
