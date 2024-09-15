@@ -22,7 +22,7 @@
 #include "utils.h"
 #include <math.h>
 #include "mc_interface.h"
-
+#include "luna_display_serial.h"
 // Variables
 static volatile bool i2c_running = false;
 
@@ -110,6 +110,7 @@ void hw_init_gpio(void) {
 	palSetPadMode(GPIOC, 3, PAL_MODE_INPUT_ANALOG);
 	palSetPadMode(GPIOC, 4, PAL_MODE_INPUT_ANALOG);
 	palSetPadMode(GPIOC, 5, PAL_MODE_INPUT_ANALOG);
+	luna_display_serial_start(3);
 }
 
 void hw_setup_adc_channels(void) {

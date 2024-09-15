@@ -31,6 +31,7 @@
 #include <string.h>
 #include "comm_can.h"
 #include "datatypes.h"
+#include "stdio.h"
 
 #define CMD_READ			0x11
 #define CMD_WRITE			0x16
@@ -163,6 +164,10 @@ void luna_display_serial_start(int8_t initial_level) {
 			PAL_STM32_PUDR_PULLUP);
     
 	display_uart_is_running = true;
+	uint8_t i = sprintf(serial_buffer.tx, "Flipsky Bafang Display!\r\n");
+	sdWrite(&HW_UART_DEV, serial_buffer.tx, i);
+
+
 }
 
 static LUNA_PAS_LEVEL translate_assist_level(int8_t level) {
@@ -506,7 +511,10 @@ static void serial_display_check_rx(void){
 			if (res != MSG_TIMEOUT) {
 				serial_display_byte_process(res);
 				rx = true;
+				uint8_t i = sprintf(serial_buffer.tx, "Message received!\r\n");
+				sdWrite(&HW_UART_DEV, serial_buffer.tx, i);
 			}
+
 		}
 	}
 }
@@ -528,6 +536,7 @@ static THD_FUNCTION(display_process_thread, arg) {
 		chEvtWaitAnyTimeout(ALL_EVENTS, ST2MS(100));
 		serial_display_check_rx();
 		set_assist_level(pas_level); //assert periodically to make sure changes are commited when a new motor config is written
+
 	}
 }
 #endif

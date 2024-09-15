@@ -20,6 +20,7 @@
 
 // (jaykup) HW properties
 #define HW_HAS_3_SHUNTS
+#define HW_HAS_LUNA_SERIAL_DISPLAY
 
 
 // Macros  
