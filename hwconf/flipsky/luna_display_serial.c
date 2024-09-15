@@ -33,6 +33,8 @@
 #include "datatypes.h"
 #include "stdio.h"
 
+#define HW_HAS_WHEEL_SPEED_SENSOR
+
 #define CMD_READ			0x11
 #define CMD_WRITE			0x16
 
@@ -164,8 +166,9 @@ void luna_display_serial_start(int8_t initial_level) {
 			PAL_STM32_PUDR_PULLUP);
     
 	display_uart_is_running = true;
-	uint8_t i = sprintf(serial_buffer.tx, "Flipsky Bafang Display!\r\n");
-	sdWrite(&HW_UART_DEV, serial_buffer.tx, i);
+	unsigned char buffer[32];
+	uint8_t lenght = sprintf(buffer, "Bafang Serial Display\r\n");
+	sdWrite(&HW_UART_DEV, buffer, lenght);
 
 
 }
@@ -257,6 +260,7 @@ static uint8_t checksum(uint8_t *buf, uint8_t len) {
 }
 
 static void serial_send_packet(unsigned char *data, unsigned int len) {
+
 	if (display_uart_is_running) {
 		sdWrite(&HW_UART_DEV, data, len);
 	}
@@ -424,7 +428,6 @@ static void serial_display_byte_process(unsigned char byte) {
 					// rpm = spd [m/s] / perim [m] * 60[s/min]
 					const volatile mc_configuration *conf = mc_interface_get_configuration();
 					uint16_t wheel_rpm = (uint16_t)(mc_interface_get_speed() / (M_PI * conf->si_wheel_diameter) * 60.0);
-
 					serial_buffer.tx[0] = (uint8_t)(wheel_rpm / 256);
 					serial_buffer.tx[1] = (uint8_t)(wheel_rpm & 0xFFFF);
 					serial_buffer.tx[2] = serial_buffer.tx[0] + serial_buffer.tx[1] + 32;
@@ -511,8 +514,9 @@ static void serial_display_check_rx(void){
 			if (res != MSG_TIMEOUT) {
 				serial_display_byte_process(res);
 				rx = true;
-				uint8_t i = sprintf(serial_buffer.tx, "Message received!\r\n");
-				sdWrite(&HW_UART_DEV, serial_buffer.tx, i);
+//				unsigned char buffer[32];
+//				buffer[0]=(unsigned char)res;
+//				sdWrite(&HW_UART_DEV, buffer, 1);
 			}
 
 		}
@@ -536,7 +540,9 @@ static THD_FUNCTION(display_process_thread, arg) {
 		chEvtWaitAnyTimeout(ALL_EVENTS, ST2MS(100));
 		serial_display_check_rx();
 		set_assist_level(pas_level); //assert periodically to make sure changes are commited when a new motor config is written
-
+//						unsigned char buffer[32];
+//						buffer[0]=(unsigned char)66;
+//						sdWrite(&HW_UART_DEV, buffer, 1);
 	}
 }
 #endif
