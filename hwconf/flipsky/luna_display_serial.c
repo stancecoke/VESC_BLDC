@@ -170,7 +170,6 @@ void luna_display_serial_start(int8_t initial_level) {
 	uint8_t lenght = sprintf(buffer, "Bafang Serial Display\r\n");
 	sdWrite(&HW_UART_DEV, buffer, lenght);
 
-
 }
 
 static LUNA_PAS_LEVEL translate_assist_level(int8_t level) {
@@ -517,6 +516,8 @@ static void serial_display_check_rx(void){
 //				unsigned char buffer[32];
 //				buffer[0]=(unsigned char)res;
 //				sdWrite(&HW_UART_DEV, buffer, 1);
+
+
 			}
 
 		}
