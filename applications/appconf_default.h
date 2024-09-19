@@ -144,7 +144,7 @@
 
 // ADC app configureation
 #ifndef APPCONF_ADC_CTRL_TYPE
-#define APPCONF_ADC_CTRL_TYPE				ADC_CTRL_TYPE_NONE
+#define APPCONF_ADC_CTRL_TYPE				ADC_CTRL_TYPE_CURRENT
 #endif
 #ifndef APPCONF_ADC_HYST
 #define APPCONF_ADC_HYST					0.15

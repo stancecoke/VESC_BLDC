@@ -541,9 +541,14 @@ static THD_FUNCTION(display_process_thread, arg) {
 		chEvtWaitAnyTimeout(ALL_EVENTS, ST2MS(100));
 		serial_display_check_rx();
 		set_assist_level(pas_level); //assert periodically to make sure changes are commited when a new motor config is written
-//						unsigned char buffer[32];
-//						buffer[0]=(unsigned char)66;
-//						sdWrite(&HW_UART_DEV, buffer, 1);
+		unsigned char buffer[32];
+		uint8_t lenght = sprintf(buffer, "%d, %d, %d, %d\r\n",
+				(int)app_pas_get_pedal_rpm(),
+				(int)(app_pas_get_current_target_rel()*1000),
+				(int)(app_adc_get_decoded_level()*1000),
+				(int)(app_adc_get_decoded_level2()*1000));
+		sdWrite(&HW_UART_DEV, buffer, lenght);
+
 	}
 }
 #endif

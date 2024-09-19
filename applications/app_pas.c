@@ -358,6 +358,7 @@ if(config.sensor_type == PAS_SENSOR_TYPE_QUADRATURE){
 
 		if (primary_output == true) {
 			mc_interface_set_current_rel(output);
+			output_current_rel = output;
 		}
 		else {
 			output_current_rel = output;
