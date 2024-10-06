@@ -279,7 +279,7 @@ if(config.sensor_type == PAS_SENSOR_TYPE_QUADRATURE){
 				break;
 			case PAS_CTRL_TYPE_PROP_TO_RIDERS_EFFORT:
 
-				torque_cumulated = 1;
+				//torque_cumulated = 1;
 				riders_effort = torque_cumulated/(float) config.magnets * pedal_rpm;
 				output = riders_effort * config.current_scaling * sub_scaling;
 				utils_truncate_number(&output, 0.0,config.current_scaling * sub_scaling);
