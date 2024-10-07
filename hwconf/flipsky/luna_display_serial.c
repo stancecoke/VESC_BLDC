@@ -237,17 +237,9 @@ static void set_assist_level(uint8_t assist_code) {
 		default: return;
 	}
 
-//	if( hw_bbshd_has_fixed_throttle_level() ) {
-//		mcconf->l_current_max_scale = 1.0;
-//		app_pas_set_current_sub_scaling(current_scale);
-//	} else {
-//		mcconf->l_current_max_scale = current_scale;
-//	}
 
-	// In level 0, both PAS and throttle should be disabled
-	if(current_scale == 0.0) {
-		mcconf->l_current_max_scale = current_scale;
-	}
+		app_pas_set_current_sub_scaling(current_scale);
+
 }
 
 static uint8_t checksum(uint8_t *buf, uint8_t len) {
