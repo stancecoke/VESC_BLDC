@@ -131,19 +131,22 @@ float app_pas_get_pedal_rpm(void) {
 
 void pas_event_handler(void) {
 #ifdef HW_PAS1_PORT
-	const int8_t QEM[] = {0,-1,1,2,1,0,2,-1,-1,2,0,1,2,1,-1,0}; // Quadrature Encoder Matrix
-	int8_t direction_qem;
-	uint8_t new_state;
+
 	static uint8_t old_state = 0;
 	static float old_timestamp = 0;
-	static float inactivity_time = 0;
-	static float period_filtered = 0;
-	static int32_t correct_direction_counter = 0;
 	uint8_t PAS1_level = 0;
-	uint8_t PAS2_level = 0;
 
 
 	switch (config.sensor_type) {
+#ifdef HW_HAS_QUADRATURE
+	const int8_t QEM[] = {0,-1,1,2,1,0,2,-1,-1,2,0,1,2,1,-1,0}; // Quadrature Encoder Matrix
+	int8_t direction_qem;
+	uint8_t new_state;
+	static float inactivity_time = 0;
+	static float period_filtered = 0;
+	static int32_t correct_direction_counter = 0;
+	uint8_t PAS2_level = 0;
+
 	case PAS_SENSOR_TYPE_QUADRATURE:
 
 		PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
@@ -190,8 +193,8 @@ void pas_event_handler(void) {
 				pedal_rpm = 0.0;
 			}
 			break;
-
-			case PAS_SENSOR_TYPE_T17_TORQUESENSOR:
+#endif
+			case PAS_SENSOR_TYPE_QUADRATURE:
 				timestamp = (float) chVTGetSystemTimeX() / (float) CH_CFG_ST_FREQUENCY;
 				PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
 				if(PAS1_level!=old_state&&(timestamp-old_timestamp)>0.02){ //search for PAS event with 20ms debounce, detects both edges
@@ -199,17 +202,20 @@ void pas_event_handler(void) {
 					old_timestamp = timestamp;
 					pedal_rpm = 60.0 / period;
 					// avarage over half crank revolution
-					torque_cumulated-=torque_cumulated/(float) config.magnets;
+					torque_cumulated-=torque_cumulated/(float) config.magnets/2.0;
 					torque_cumulated+=app_adc_get_decoded_level2();
 					old_state=PAS1_level;
 				}
-				else if((timestamp-old_timestamp)>0.5)pedal_rpm = 0; //PAS timeout after half a second
+				else if((timestamp-old_timestamp)>0.5){
+					pedal_rpm = 0; //PAS timeout after half a second
+					torque_cumulated=torque_cumulated*0.75; //ramp down averaged torque
+				}
 			break;
 			default:
 			break;
 		}
 
-	}
+
 #endif
 }
 
@@ -277,10 +283,10 @@ if(config.sensor_type == PAS_SENSOR_TYPE_QUADRATURE){
 					}
 				}
 				break;
-			case PAS_CTRL_TYPE_PROP_TO_RIDERS_EFFORT:
+			case PAS_CTRL_TYPE_TORQUE:
 
 				//torque_cumulated = 1;
-				riders_effort = torque_cumulated/(float) config.magnets * pedal_rpm;
+				riders_effort = torque_cumulated/(float) config.magnets/2.0* pedal_rpm;
 				output = riders_effort * config.current_scaling * sub_scaling;
 				utils_truncate_number(&output, 0.0,config.current_scaling * sub_scaling);
 				break;
