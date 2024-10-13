@@ -206,8 +206,8 @@ void pas_event_handler(void) {
 					torque_cumulated+=app_adc_get_decoded_level2();
 					old_state=PAS1_level;
 				}
-				else if((timestamp-old_timestamp)>0.5){
-					pedal_rpm = 0; //PAS timeout after half a second
+				else if((timestamp-old_timestamp)>0.2){ //PAS timeout after 0.2 seconds
+					pedal_rpm = 0;
 					torque_cumulated=torque_cumulated*0.75; //ramp down averaged torque
 				}
 			break;
