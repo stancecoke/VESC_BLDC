@@ -21,6 +21,12 @@
 // (jaykup) HW properties
 #define HW_HAS_3_SHUNTS
 #define HW_HAS_LUNA_SERIAL_DISPLAY
+#define HW_HAS_WHEEL_SPEED_SENSOR
+
+#ifdef HW_HAS_WHEEL_SPEED_SENSOR
+#define HW_SPEED_SENSOR_PORT	GPIOC
+#define HW_SPEED_SENSOR_PIN		11 //Use RX2 from UART2 connector
+#endif
 
 
 // Macros  
@@ -159,7 +165,7 @@
 #define HW_UART_P_TX_PORT		GPIOC
 #define HW_UART_P_TX_PIN		10
 #define HW_UART_P_RX_PORT		GPIOC
-#define HW_UART_P_RX_PIN		11
+#define HW_UART_P_RX_PIN		11 //is used for external Speedsensor
 
 // (jaykup) should be disabled as this unit has no bluetooth module to program
 // NRF SWD
@@ -282,5 +288,11 @@
 #define HW_LIM_DUTY_MIN			0.0, 0.1
 #define HW_LIM_DUTY_MAX			0.0, 0.99
 #define HW_LIM_TEMP_FET			-40.0, 110.0
+
+
+void hw_update_speed_sensor(void);
+float hw_get_speed(void);
+float hw_get_distance(void);
+float hw_get_distance_abs(void);
 
 #endif /* HW_75_100_V2_H_ */

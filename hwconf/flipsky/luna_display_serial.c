@@ -33,7 +33,7 @@
 #include "datatypes.h"
 #include "stdio.h"
 
-#define HW_HAS_WHEEL_SPEED_SENSOR
+
 
 #define CMD_READ			0x11
 #define CMD_WRITE			0x16
