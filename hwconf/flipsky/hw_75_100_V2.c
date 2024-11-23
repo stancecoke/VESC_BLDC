@@ -50,6 +50,8 @@ void hw_init_gpio(void) {
 
 	// external Speedsensor
 	palSetPadMode(HW_SPEED_SENSOR_PORT, HW_SPEED_SENSOR_PIN, PAL_MODE_INPUT_PULLUP);
+	// external Brakesensor
+	palSetPadMode(HW_BRAKE_SENSOR_PORT, HW_BRAKE_SENSOR_PIN, PAL_MODE_INPUT_PULLUP);
 
 	// GPIOA Configuration: Channel 1 to 3 as alternate function push-pull
 	palSetPadMode(GPIOA, 8, PAL_MODE_ALTERNATE(GPIO_AF_TIM1) |

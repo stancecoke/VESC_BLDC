@@ -637,8 +637,8 @@ static THD_FUNCTION(adc_thread, arg) {
 						current_out = utils_map(diff, 0.0, config.tc_max_diff, current_rel, 0.0);
 					}
 				}
-
-				if (is_reverse) {
+				if(!palReadPad(HW_BRAKE_SENSOR_PORT, HW_BRAKE_SENSOR_PIN))mc_interface_set_current_rel(0.0); //stop motor if brake lever is pulled
+				else if (is_reverse) {
 					mc_interface_set_current_rel(-current_out);
 				} else {
 					mc_interface_set_current_rel(current_out);

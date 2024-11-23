@@ -22,10 +22,16 @@
 #define HW_HAS_3_SHUNTS
 #define HW_HAS_LUNA_SERIAL_DISPLAY
 #define HW_HAS_WHEEL_SPEED_SENSOR
+#define HW_HAS_BRAKE_SENSOR
 
 #ifdef HW_HAS_WHEEL_SPEED_SENSOR
 #define HW_SPEED_SENSOR_PORT	GPIOC
 #define HW_SPEED_SENSOR_PIN		11 //Use RX2 from UART2 connector
+#endif
+
+#ifdef HW_HAS_BRAKE_SENSOR
+#define HW_BRAKE_SENSOR_PORT	GPIOC
+#define HW_BRAKE_SENSOR_PIN		10 //Use RX2 from UART2 connector
 #endif
 
 
@@ -163,7 +169,7 @@
 #define HW_UART_P_DEV			SD4
 #define HW_UART_P_GPIO_AF		GPIO_AF_UART4
 #define HW_UART_P_TX_PORT		GPIOC
-#define HW_UART_P_TX_PIN		10
+#define HW_UART_P_TX_PIN		10 //is used for brake sensor
 #define HW_UART_P_RX_PORT		GPIOC
 #define HW_UART_P_RX_PIN		11 //is used for external Speedsensor
 
