@@ -46,6 +46,15 @@
 // HW properties
 #define HW_HAS_DRV8301
 #define HW_HAS_3_SHUNTS
+
+// --- Dodane jawnie dla obsługi sensorów (zawsze aktywne, jak Flipsky) ---
+#define HW_HAS_WHEEL_SPEED_SENSOR
+#define HW_SPEED_SENSOR_PORT   GPIOC
+#define HW_SPEED_SENSOR_PIN    11
+#define HW_HAS_BRAKE_SENSOR
+#define HW_BRAKE_SENSOR_PORT   GPIOC
+#define HW_BRAKE_SENSOR_PIN    10
+// --- koniec nowej sekcji ---
 #define HW_HAS_PHASE_SHUNTS
 #if !defined(HW60_IS_MK3) && !defined(HW60_IS_MK4) && !defined(HW60_IS_MK5) && !defined(HW60_IS_MK6)
 #define HW_HAS_PERMANENT_NRF
@@ -442,5 +451,11 @@
 #if defined(HW60_IS_MK3) || defined(HW60_IS_MK4) || defined(HW60_IS_MK5) || defined(HW60_IS_MK6)
 bool hw_sample_shutdown_button(void);
 #endif
+
+// Deklaracje nowych funkcji do speed sensora i dystansu na wzór Flipsky
+void hw_update_speed_sensor(void);
+float hw_get_speed(void);
+float hw_get_distance(void);
+float hw_get_distance_abs(void);
 
 #endif /* HW_60_CORE_H_ */
